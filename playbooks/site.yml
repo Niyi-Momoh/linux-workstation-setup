@@ -1,0 +1,44 @@
+---
+- name: Configure a robotics and machine learning workstation
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Find the target user's home folder
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ workstation_user }}"
+      failed_when: false
+    - name: Record whether the target user exists
+      ansible.builtin.set_fact:
+        workstation_user_exists: "{{ ansible_facts['getent_passwd'] is defined and workstation_user in ansible_facts['getent_passwd'] }}"
+  roles:
+    - role: preflight
+      tags: [preflight, always]
+    - role: base
+      tags: [base]
+    - role: shell
+      tags: [shell]
+    - role: cpp
+      when: install_cpp | bool
+      tags: [cpp]
+    - role: python
+      when: install_python | bool
+      tags: [python]
+    - role: ml
+      when: install_ml | bool
+      tags: [ml]
+    - role: cad
+      when: install_cad | bool
+      tags: [cad]
+    - role: containers
+      when: install_docker | bool
+      tags: [containers]
+    - role: kubernetes_tools
+      when: install_kubernetes_tools | bool
+      tags: [kubernetes]
+    - role: robotics
+      when: install_ros | bool
+      tags: [robotics]
+    - role: desktop
+      when: install_desktop | bool
+      tags: [desktop]

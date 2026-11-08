@@ -1,0 +1,19 @@
+---
+# Set any of these with -e name=value, or keep your own copy in a variables file.
+workstation_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') | default(ansible_facts['user_id'], true) }}"
+container_image: false
+
+install_cpp: true
+install_python: true
+install_ml: true
+install_cad: true
+install_docker: "{{ not container_image }}"
+install_kubernetes_tools: true
+install_ros: true
+install_desktop: "{{ not container_image }}"
+
+min_free_gb: 15
+kubernetes_minor: "v1.37"
+ros_distro: jazzy
+ros_package: "ros-{{ ros_distro }}-ros-base" # Use ros-jazzy-desktop for RViz and demos.
+git_default_branch: main

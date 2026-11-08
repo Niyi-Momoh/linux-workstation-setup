@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -z "${JUPYTER_TOKEN:-}" || "${#JUPYTER_TOKEN}" -lt 16 ]]; then
+  echo "Set JUPYTER_TOKEN to a secret of at least 16 characters." >&2
+  exit 64
+fi
+mkdir -p "$JUPYTER_RUNTIME_DIR" "$JUPYTER_DATA_DIR" "$JUPYTER_CONFIG_DIR"
+exec jupyter lab --no-browser --ip=0.0.0.0 --port=8888 --ServerApp.root_dir=/home/dev/workspace

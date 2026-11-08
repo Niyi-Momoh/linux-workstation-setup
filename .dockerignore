@@ -1,0 +1,4 @@
+.git
+.ansible-env
+results
+k8s

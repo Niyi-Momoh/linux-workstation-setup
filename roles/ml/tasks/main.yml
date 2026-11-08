@@ -1,0 +1,16 @@
+---
+- name: Copy the machine learning requirements
+  become: true
+  become_user: "{{ workstation_user }}"
+  ansible.builtin.copy:
+    src: requirements.txt
+    dest: "~{{ workstation_user }}/.ml-requirements.txt"
+    mode: "0644"
+
+- name: Create the machine learning environment
+  become: true
+  become_user: "{{ workstation_user }}"
+  ansible.builtin.pip:
+    requirements: "~{{ workstation_user }}/.ml-requirements.txt"
+    virtualenv: "~{{ workstation_user }}/.venvs/ml"
+    virtualenv_command: python3 -m venv

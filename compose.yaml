@@ -1,0 +1,21 @@
+services:
+  workstation:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: linux-workstation:local
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:?Set JUPYTER_TOKEN to a secret of at least 16 characters}
+    ports:
+      - "127.0.0.1:8888:8888" # Reachable from this computer only.
+    volumes:
+      - workspace:/home/dev/workspace
+    tmpfs:
+      - /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+volumes:
+  workspace:

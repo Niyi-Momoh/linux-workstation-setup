@@ -1,0 +1,15 @@
+---
+- name: Install core tools
+  ansible.builtin.apt:
+    name: [bash-completion, ca-certificates, curl, git, gnupg, htop, jq, ripgrep, fd-find, tmux, unzip, wget, sudo, python3-psutil]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the container user
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    uid: 1000
+    shell: /bin/bash
+    create_home: true
+  when: container_image | bool

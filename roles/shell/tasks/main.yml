@@ -1,0 +1,34 @@
+---
+- name: Add managed shell settings without replacing the rest of .bashrc
+  become: true
+  become_user: "{{ workstation_user }}"
+  ansible.builtin.blockinfile:
+    path: "~{{ workstation_user }}/.bashrc"
+    create: true
+    mode: "0644"
+    backup: true
+    marker: "# {mark} MANAGED BY linux-workstation-setup"
+    block: |
+      export PATH="$HOME/.local/bin:$PATH"
+      alias fd=fdfind
+      alias ll='ls -alF'
+      if [ -f "/opt/ros/{{ ros_distro }}/setup.bash" ]; then
+        source "/opt/ros/{{ ros_distro }}/setup.bash"
+      fi
+
+- name: Install tmux settings
+  become: true
+  become_user: "{{ workstation_user }}"
+  ansible.builtin.template:
+    src: tmux.conf.j2
+    dest: "~{{ workstation_user }}/.tmux.conf"
+    mode: "0644"
+    backup: true
+
+- name: Set the default Git branch
+  become: true
+  become_user: "{{ workstation_user }}"
+  community.general.git_config:
+    name: init.defaultBranch
+    scope: global
+    value: "{{ git_default_branch }}"

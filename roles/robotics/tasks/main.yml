@@ -1,0 +1,40 @@
+---
+- name: Check whether the ROS 2 repository is configured
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/ros2.sources
+  register: robotics_ros_source
+
+- name: Add the ROS 2 repository
+  when: not robotics_ros_source.stat.exists
+  block:
+    - name: Find the current ROS repository package
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest
+        return_content: true
+      register: robotics_ros_release
+
+    - name: Install the ROS repository package
+      vars:
+        robotics_tag: "{{ robotics_ros_release.json.tag_name }}"
+        robotics_codename: "{{ ansible_facts['distribution_release'] }}"
+        robotics_base_url: https://github.com/ros-infrastructure/ros-apt-source/releases/download
+      ansible.builtin.apt:
+        deb: "{{ robotics_base_url }}/{{ robotics_tag }}/ros2-apt-source_{{ robotics_tag }}.{{ robotics_codename }}_all.deb"
+
+- name: Install ROS 2 and robotics utilities
+  ansible.builtin.apt:
+    name:
+      - "{{ ros_package }}"
+      - ros-dev-tools
+      - can-utils
+      - minicom
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Let the user access serial devices
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    groups: dialout
+    append: true
+  when: workstation_user_exists | bool

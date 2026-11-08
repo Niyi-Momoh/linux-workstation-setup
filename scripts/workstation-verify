@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Prove that the installed tools work, rather than only that packages exist.
+set -euo pipefail
+
+passed=0
+check() {
+  local name="$1"
+  shift
+  if "$@" >/dev/null 2>&1; then
+    echo "PASS $name"
+    passed=$((passed + 1))
+  else
+    echo "FAIL $name"
+    exit 1
+  fi
+}
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+export PATH="$HOME/.local/bin:$PATH"
+
+cpp_build() {
+  cat >"$work/main.cpp" <<'CPP'
+#include <numeric>
+#include <vector>
+int main() {
+  std::vector<int> v{1, 2, 3};
+  return std::accumulate(v.begin(), v.end(), 0) == 6 ? 0 : 1;
+}
+CPP
+  cat >"$work/CMakeLists.txt" <<'CMAKE'
+cmake_minimum_required(VERSION 3.20)
+project(check CXX)
+set(CMAKE_CXX_STANDARD 20)
+add_executable(check main.cpp)
+CMAKE
+  cmake -S "$work" -B "$work/build" -G Ninja && cmake --build "$work/build" && "$work/build/check"
+}
+
+ml_stack() {
+  "$HOME/.venvs/ml/bin/python" - <<'PY'
+import numpy as np
+from scipy import linalg
+from sklearn.linear_model import LinearRegression
+
+x = np.arange(20.0).reshape(-1, 1)
+assert abs(LinearRegression().fit(x, 3 * x[:, 0]).coef_[0] - 3) < 1e-9
+assert abs(linalg.det(np.eye(3)) - 1) < 1e-9
+PY
+}
+
+scad_render() {
+  echo 'cube(10);' >"$work/c.scad"
+  openscad -o "$work/c.stl" "$work/c.scad" && test -s "$work/c.stl"
+}
+
+check "git" git --version
+check "ripgrep" rg --version
+check "cpp-cmake-build" cpp_build
+check "clang-format" clang-format --version
+check "ruff" ruff --version
+check "machine-learning-stack" ml_stack
+check "jupyterlab" "$HOME/.venvs/ml/bin/jupyter" lab --version
+check "openscad-render" scad_render
+if [[ "${EXPECT_KUBECTL:-0}" == 1 ]]; then check "kubectl" kubectl version --client; fi
+if [[ "${EXPECT_ROS:-0}" == 1 ]]; then
+  ros_check() { set +u; source /opt/ros/jazzy/setup.bash; ros2 pkg list | grep -qx rclcpp; }
+  check "ros2" ros_check
+fi
+echo "ALL PASSED: $passed checks"

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install 'ansible>=11,<14' ansible-lint yamllint
+      - run: yamllint .
+      - run: ansible-lint -q playbooks/site.yml
+      - run: shellcheck install.sh docker/start-jupyter scripts/*
+      - run: kubectl kustomize k8s/overlays/local >/dev/null
+
+  clean-system:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install everything on a fresh Ubuntu 24.04 container
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            -e EXPECT_ROS=1 -e EXPECT_KUBECTL=1 \
+            ubuntu:24.04 /src/scripts/test-clean-system.sh
+
+  kubernetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+        with:
+          install_only: true
+      - run: scripts/deploy-kind.sh
+      - run: scripts/test-image.sh
+      - run: scripts/k8s-smoke.sh

@@ -1,0 +1,5 @@
+---
+- name: Install the C++ toolchain
+  ansible.builtin.apt:
+    name: [build-essential, ccache, clang, clang-format, clang-tidy, cmake, gdb, ninja-build, valgrind]
+    state: present

@@ -1,0 +1,5 @@
+---
+- name: Install OpenSCAD
+  ansible.builtin.apt:
+    name: openscad
+    state: present

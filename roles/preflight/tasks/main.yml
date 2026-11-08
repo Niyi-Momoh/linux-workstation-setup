@@ -1,0 +1,23 @@
+---
+- name: Refuse unsupported systems
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] == '24.04'
+      - ansible_facts['architecture'] in ['x86_64', 'aarch64']
+    fail_msg: This playbook supports Ubuntu 24.04 on x86_64 or aarch64 only.
+    quiet: true
+
+- name: Refuse to configure the root account
+  ansible.builtin.assert:
+    that: workstation_user != 'root' or container_image | bool
+    fail_msg: Run through sudo from your own account, or set workstation_user.
+    quiet: true
+
+- name: Check free disk space
+  ansible.builtin.assert:
+    that: >-
+      (ansible_facts['mounts'] | selectattr('mount', 'equalto', '/') | map(attribute='size_available')
+      | first | default(min_free_gb * 1024 * 1024 * 1024)) >= min_free_gb * 1024 * 1024 * 1024
+    fail_msg: At least {{ min_free_gb }} GB must be free on the root filesystem.
+    quiet: true

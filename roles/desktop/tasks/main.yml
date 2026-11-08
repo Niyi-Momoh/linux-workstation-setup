@@ -1,0 +1,23 @@
+---
+- name: Check for a GNOME desktop
+  ansible.builtin.stat:
+    path: /usr/bin/gnome-shell
+  register: desktop_gnome_shell
+
+- name: Install desktop utilities
+  ansible.builtin.apt:
+    name: [dconf-cli, flatpak, gnome-tweaks]
+    state: present
+  when: desktop_gnome_shell.stat.exists
+
+- name: Apply desktop preferences
+  become: true
+  become_user: "{{ workstation_user }}"
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: /org/gnome/desktop/interface/color-scheme, value: "'prefer-dark'" }
+    - { key: /org/gnome/desktop/interface/show-battery-percentage, value: "true" }
+  when: desktop_gnome_shell.stat.exists
