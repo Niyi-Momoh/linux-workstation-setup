@@ -21,6 +21,10 @@
       ansible.builtin.apt:
         deb: "{{ robotics_base_url }}/{{ robotics_tag }}/ros2-apt-source_{{ robotics_tag }}.{{ robotics_codename }}_all.deb"
 
+    - name: Refresh package lists with the ROS repository
+      ansible.builtin.apt:
+        update_cache: true
+
 - name: Install ROS 2 and robotics utilities
   ansible.builtin.apt:
     name:
@@ -29,8 +33,6 @@
       - can-utils
       - minicom
     state: present
-    update_cache: true
-    cache_valid_time: 3600
 
 - name: Let the user access serial devices
   ansible.builtin.user:
