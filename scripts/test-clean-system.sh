@@ -11,7 +11,7 @@ apt-get update -qq
 apt-get install -y -qq --no-install-recommends python3-venv ca-certificates >/dev/null
 python3 -m venv /opt/ansible
 /opt/ansible/bin/pip install --quiet 'ansible>=11,<14'
-useradd -m -u 1000 -s /bin/bash dev
+useradd -m -s /bin/bash dev
 cd /src
 
 /opt/ansible/bin/ansible-playbook playbooks/site.yml "${args[@]}" | tee /tmp/first.log

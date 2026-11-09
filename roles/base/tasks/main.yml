@@ -6,10 +6,24 @@
     update_cache: true
     cache_valid_time: 3600
 
+- name: Remove the default user from the base image
+  ansible.builtin.user:
+    name: ubuntu
+    state: absent
+    remove: true
+  when: container_image | bool
+
+- name: Create the container user's group
+  ansible.builtin.group:
+    name: "{{ workstation_user }}"
+    gid: 1000
+  when: container_image | bool
+
 - name: Create the container user
   ansible.builtin.user:
     name: "{{ workstation_user }}"
     uid: 1000
+    group: "{{ workstation_user }}"
     shell: /bin/bash
     create_home: true
   when: container_image | bool
