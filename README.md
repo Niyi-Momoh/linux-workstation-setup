@@ -31,7 +31,7 @@ flowchart LR
 | Kubernetes 1.37 | Workspace survives pod replacement | Pass |
 | Kubernetes 1.37 | Privileged pods are rejected | Pass |
 
-The Kubernetes checks ran on a real single-node cluster with containerd. The image is 983 MB
+The Kubernetes checks ran on a real single-node cluster with containerd and on a kind cluster in CI. CI also installs and checks ROS 2 and kubectl on a fresh system. The image is 983 MB
 compressed and 4.15 GB unpacked, because it includes the C++ toolchain, OpenSCAD and the ML stack.
 
 ## What it installs
@@ -94,7 +94,6 @@ scripts/test-image.sh
 
 ## Limitations
 
-- The ROS 2 and kubectl roles and the kind deployment script run in CI, and had not run when the table above was produced.
 - The desktop role was tested in a container with a stand-in for GNOME, not on a physical desktop. The Docker service step only runs under systemd.
 - The single-node test cluster did not enforce NetworkPolicy, so the policy was accepted but its blocking behaviour was not tested.
 - The token protects JupyterLab, but anyone with the token can run code in it. Do not expose it publicly without HTTPS and stronger login controls.
