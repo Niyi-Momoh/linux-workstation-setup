@@ -64,7 +64,7 @@ check "jupyterlab" "$HOME/.venvs/ml/bin/jupyter" lab --version
 check "openscad-render" scad_render
 if [[ "${EXPECT_KUBECTL:-0}" == 1 ]]; then check "kubectl" kubectl version --client; fi
 if [[ "${EXPECT_ROS:-0}" == 1 ]]; then
-  ros_check() { set +u; source /opt/ros/jazzy/setup.bash; ros2 pkg list | grep -qx rclcpp; }
+  ros_check() { set +u; source /opt/ros/jazzy/setup.bash; ros2 pkg prefix rclcpp; }
   check "ros2" ros_check
 fi
 echo "ALL PASSED: $passed checks"
